@@ -33,18 +33,37 @@ async function loadFeed() {
     const posts = [];
     for (const postId in postFiles) {
       const text = postTexts[postId] || {};
+      const files = postFiles[postId].files;
+      
+      // Находим самую позднюю дату загрузки среди файлов поста
+      let latestUpload = null;
+      for (const file of files) {
+        if (file.uploadedAt) {
+          const uploadDate = new Date(file.uploadedAt);
+          if (!latestUpload || uploadDate > latestUpload) {
+            latestUpload = uploadDate;
+          }
+        }
+      }
+      
       posts.push({
         id: parseInt(postId),
         text: text.text || '',
         date: text.date || null,
         views: text.views || 0,
         repo: postFiles[postId].repo,
-        files: postFiles[postId].files
+        files: files,
+        uploadedAt: latestUpload
       });
     }
     
-    // Сортируем по ID (новые сверху)
-    posts.sort((a, b) => b.id - a.id);
+    // Сортируем по дате загрузки (новые сверху)
+    posts.sort((a, b) => {
+      if (!a.uploadedAt && !b.uploadedAt) return b.id - a.id;
+      if (!a.uploadedAt) return 1;
+      if (!b.uploadedAt) return -1;
+      return b.uploadedAt - a.uploadedAt;
+    });
     
     feedEl.innerHTML = '';
     
