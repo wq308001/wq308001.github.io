@@ -1,52 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>HLS Плеер</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Media Viewer - wq308001</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-    video { width: 100%; max-width: 800px; margin-top: 10px; }
-    input { width: 80%; padding: 8px; }
-    button { padding: 8px 12px; }
+    body{font-family:Segoe UI,Arial,Helvetica,sans-serif;margin:0;background:#f5f5f5}
+    .tabs{display:flex;background:#fff;border-bottom:2px solid #ddd;padding:0 18px}
+    .tab{padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.3s}
+    .tab:hover{background:#f0f0f0}
+    .tab.active{border-bottom-color:#0066cc;color:#0066cc;font-weight:600}
+    .content{padding:18px}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    h1{color:#333;margin-top:0}
+    .item{margin-bottom:18px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+    .meta{margin-bottom:8px;color:#666;font-size:14px}
+    video{width:100%;max-width:720px;border-radius:6px;background:#000}
+    a.link{display:inline-block;margin-left:10px;color:#0066cc;text-decoration:none}
+    a.link:hover{text-decoration:underline}
+    .grid{display:flex;flex-wrap:wrap;gap:12px}
+    .card{width:200px;border:1px solid #ddd;padding:12px;border-radius:8px;text-align:center;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+    .card img{max-width:100%;border-radius:6px;margin:8px 0}
+    .card button{margin-top:6px;padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer}
+    .card button:hover{background:#0052a3}
+    .card button:disabled{background:#ccc;cursor:not-allowed}
+    .key-input{margin-bottom:16px;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd}
+    .key-input label{display:block;margin-bottom:6px;font-weight:600}
+    .key-input input{width:100%;max-width:400px;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:monospace}
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.1/dist/hls.min.js"></script>
 </head>
 <body>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('videos')">📹 Видео</div>
+    <div class="tab" onclick="switchTab('images')">🖼️ Фото</div>
+  </div>
+  
+  <div class="content">
+    <div id="videos-tab" class="tab-content active">
+      <h1>📹 Видео (GitHub: wq308001)</h1>
+      <div id="videos-list">Загрузка...</div>
+    </div>
+    
+    <div id="images-tab" class="tab-content">
+      <h1>🖼️ Зашифрованные фото</h1>
+      <div class="key-input">
+        <label>Ключ шифрования:</label>
+        <input id="key" value="863740fe80b9d5f36e5b468fc442b0fa" placeholder="Введите hex ключ">
+      </div>
+      <div id="images-list" class="grid">Загрузка...</div>
+    </div>
+  </div>
 
-<h2>HLS Плеер</h2>
-
-<input type="text" id="hlsUrl" placeholder="Вставьте ссылку на .m3u8">
-<button onclick="playHLS()">Воспроизвести</button>
-
-<video id="video" controls></video>
-
-<script>
-  function playHLS() {
-    const video = document.getElementById('video');
-    const url = document.getElementById('hlsUrl').value.trim();
-    if (!url) {
-      alert('Пожалуйста, вставьте ссылку на .m3u8');
-      return;
-    }
-
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function() {
-        video.play();
+  <script>
+    // Инициализация флагов
+    window.videosLoaded = false;
+    window.imagesLoaded = false;
+    
+    function switchTab(tabName) {
+      // Переключаем активные табы
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      
+      // Находим и активируем нужный таб
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => {
+        if((tabName === 'videos' && t.textContent.includes('Видео')) || 
+           (tabName === 'images' && t.textContent.includes('Фото'))) {
+          t.classList.add('active');
+        }
       });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Для Safari
-      video.src = url;
-      video.addEventListener('loadedmetadata', function() {
-        video.play();
-      });
-    } else {
-      alert('Ваш браузер не поддерживает HLS');
+      
+      document.getElementById(tabName + '-tab').classList.add('active');
+      
+      // Обновляем hash в URL
+      window.location.hash = tabName === 'videos' ? '#video' : '#image';
+      
+      // Загружаем контент если еще не загружен
+      if(tabName === 'videos' && !window.videosLoaded) {
+        loadVideos();
+        window.videosLoaded = true;
+      } else if(tabName === 'images' && !window.imagesLoaded) {
+        loadImages();
+        window.imagesLoaded = true;
+      }
     }
-  }
-</script>
-
+  </script>
+  <script src="media.js"></script>
+  <script>
+    // Инициализация после загрузки всех скриптов
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash;
+      if(hash === '#image') {
+        switchTab('images');
+      } else {
+        // По умолчанию видео
+        switchTab('videos');
+      }
+    });
+  </script>
 </body>
 </html>
