@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>HLS Плеер</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    video { width: 100%; max-width: 800px; margin-top: 10px; }
+    input { width: 80%; padding: 8px; }
+    button { padding: 8px 12px; }
+  </style>
+</head>
+<body>
+
+<h2>HLS Плеер</h2>
+
+<input type="text" id="hlsUrl" placeholder="Вставьте ссылку на .m3u8">
+<button onclick="playHLS()">Воспроизвести</button>
+
+<video id="video" controls></video>
+
+<script>
+  function playHLS() {
+    const video = document.getElementById('video');
+    const url = document.getElementById('hlsUrl').value.trim();
+    if (!url) {
+      alert('Пожалуйста, вставьте ссылку на .m3u8');
+      return;
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        video.play();
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Для Safari
+      video.src = url;
+      video.addEventListener('loadedmetadata', function() {
+        video.play();
+      });
+    } else {
+      alert('Ваш браузер не поддерживает HLS');
+    }
+  }
+</script>
+
+</body>
+</html>
