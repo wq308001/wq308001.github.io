@@ -27,9 +27,35 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid #38444d;
       padding: 16px 20px;
+      z-index: 10;
+    }
+    .header-title {
       font-size: 20px;
       font-weight: 700;
-      z-index: 10;
+      margin-bottom: 12px;
+    }
+    .sort-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .sort-btn {
+      background: #192734;
+      color: #8899a6;
+      border: 1px solid #38444d;
+      padding: 6px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .sort-btn:hover {
+      background: #22303c;
+    }
+    .sort-btn.active {
+      background: #1da1f2;
+      color: #fff;
+      border-color: #1da1f2;
     }
     .post {
       border-bottom: 1px solid #38444d;
@@ -140,7 +166,13 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">📱 Feed</div>
+    <div class="header">
+      <div class="header-title">📱 Feed</div>
+      <div class="sort-buttons">
+        <button class="sort-btn active" onclick="changeSortMode('upload')">По дате загрузки</button>
+        <button class="sort-btn" onclick="changeSortMode('post')">По ID поста</button>
+      </div>
+    </div>
     <div id="feed" class="loading">Загрузка...</div>
   </div>
 
