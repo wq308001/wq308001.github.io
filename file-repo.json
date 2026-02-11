@@ -234,8 +234,23 @@
     {
       "name": "pppp-2",
       "totalSize": 0,
-      "fileCount": 0,
-      "files": []
+      "fileCount": 2,
+      "files": [
+        {
+          "name": "hls_1770819702/video_2025-12-31_08-07-39_pages.m3u8",
+          "type": "hls_pages",
+          "segments": 92,
+          "post_id": 672,
+          "uploadedAt": "2026-02-11T14:22:01.630410+00:00"
+        },
+        {
+          "name": "hls_1770819702/video_2025-12-31_08-07-39_raw.m3u8",
+          "type": "hls_raw",
+          "segments": 92,
+          "post_id": 672,
+          "uploadedAt": "2026-02-11T14:22:01.630455+00:00"
+        }
+      ]
     }
   ],
   "currentRepo": "pppp-2"
