@@ -189,12 +189,19 @@
         }
 
         async function loadAndDecrypt() {
-            const urlInput = document.getElementById('urlInput').value.trim();
+            let urlInput = document.getElementById('urlInput').value.trim();
             const keyInput = document.getElementById('keyInput').value;
             const statusDiv = document.getElementById('status');
             const videoContainer = document.getElementById('videoContainer');
             const videoPlayer = document.getElementById('videoPlayer');
             const loadBtn = document.getElementById('loadBtn');
+            
+            // Преобразуем GitHub blob URL в raw URL
+            if (urlInput.includes('github.com') && urlInput.includes('/blob/')) {
+                urlInput = urlInput.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+                console.log('Converted to raw URL:', urlInput);
+                document.getElementById('urlInput').value = urlInput;
+            }
             
             if (!urlInput) {
                 showStatus('Please enter a file URL', 'error');
