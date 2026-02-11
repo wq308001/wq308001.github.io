@@ -3,7 +3,7 @@
     {
       "name": "pppp-1",
       "totalSize": 1437424,
-      "fileCount": 26,
+      "fileCount": 32,
       "files": [
         {
           "name": "photo_2026-02-10_16-10-28.jpg.enc",
@@ -186,9 +186,57 @@
           "segments": 3,
           "post_id": 681,
           "uploadedAt": "2026-02-11T13:56:32.510033+00:00"
+        },
+        {
+          "name": "hls_1770818380/video_2026-01-07_15-50-58_pages.m3u8",
+          "type": "hls_pages",
+          "segments": 21,
+          "post_id": 678,
+          "uploadedAt": "2026-02-11T13:59:47.356213+00:00"
+        },
+        {
+          "name": "hls_1770818380/video_2026-01-07_15-50-58_raw.m3u8",
+          "type": "hls_raw",
+          "segments": 21,
+          "post_id": 678,
+          "uploadedAt": "2026-02-11T13:59:47.356244+00:00"
+        },
+        {
+          "name": "hls_1770818653/video_2026-01-03_09-00-30_pages.m3u8",
+          "type": "hls_pages",
+          "segments": 23,
+          "post_id": 674,
+          "uploadedAt": "2026-02-11T14:04:21.653092+00:00"
+        },
+        {
+          "name": "hls_1770818653/video_2026-01-03_09-00-30_raw.m3u8",
+          "type": "hls_raw",
+          "segments": 23,
+          "post_id": 674,
+          "uploadedAt": "2026-02-11T14:04:21.653136+00:00"
+        },
+        {
+          "name": "hls_1770819101/video_2026-01-01_13-42-02_pages.m3u8",
+          "type": "hls_pages",
+          "segments": 23,
+          "post_id": 673,
+          "uploadedAt": "2026-02-11T14:12:00.776840+00:00"
+        },
+        {
+          "name": "hls_1770819101/video_2026-01-01_13-42-02_raw.m3u8",
+          "type": "hls_raw",
+          "segments": 23,
+          "post_id": 673,
+          "uploadedAt": "2026-02-11T14:12:00.776872+00:00"
         }
       ]
+    },
+    {
+      "name": "pppp-2",
+      "totalSize": 0,
+      "fileCount": 0,
+      "files": []
     }
   ],
-  "currentRepo": "pppp-1"
+  "currentRepo": "pppp-2"
 }
