@@ -7,8 +7,8 @@ async function loadFeed() {
   try {
     // Загружаем оба JSON
     const [repoRes, postsRes] = await Promise.all([
-      fetch('https://raw.githubusercontent.com/wq308001/wq308001.github.io/refs/heads/main/file-repo.json'),
-      fetch('https://raw.githubusercontent.com/wq308001/wq308001.github.io/refs/heads/main/posts.json')
+      fetch('file-repo.json'),
+      fetch('posts.json')
     ]);
     
     const repoData = await repoRes.json();
@@ -220,4 +220,3 @@ function formatDate(dateStr) {
 }
 
 loadFeed();
-
