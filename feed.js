@@ -1,225 +1,186 @@
-let allPosts = [];
-let currentSortMode = 'upload'; // 'upload' or 'post'
-
-async function loadFeed() {
-  const feedEl = document.getElementById('feed');
-  
-  try {
-    // Загружаем оба JSON
-    const [repoRes, postsRes] = await Promise.all([
-      fetch('file-repo.json'),
-      fetch('posts.json')
-    ]);
-    
-    const repoData = await repoRes.json();
-    const postsData = await postsRes.json();
-    
-    // Создаем карту post_id -> файлы
-    const postFiles = {};
-    for (const repo of repoData.repositories) {
-      for (const file of repo.files) {
-        const postId = file.post_id;
-        if (!postFiles[postId]) {
-          postFiles[postId] = { repo: repo.name, files: [] };
-        }
-        postFiles[postId].files.push(file);
-      }
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feed</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #15202b;
+      color: #fff;
+      line-height: 1.5;
     }
-    
-    // Создаем карту post_id -> текст
-    const postTexts = {};
-    for (const post of postsData) {
-      postTexts[post.post_id] = post;
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      border-left: 1px solid #38444d;
+      border-right: 1px solid #38444d;
+      min-height: 100vh;
+      background: #15202b;
     }
-    
-    // Собираем все посты
-    allPosts = [];
-    for (const postId in postFiles) {
-      const text = postTexts[postId] || {};
-      const files = postFiles[postId].files;
-      
-      // Находим самую позднюю дату загрузки среди файлов поста
-      let latestUpload = null;
-      for (const file of files) {
-        if (file.uploadedAt) {
-          const uploadDate = new Date(file.uploadedAt);
-          if (!latestUpload || uploadDate > latestUpload) {
-            latestUpload = uploadDate;
-          }
-        }
-      }
-      
-      allPosts.push({
-        id: parseInt(postId),
-        text: text.text || '',
-        date: text.date || null,
-        views: text.views || 0,
-        repo: postFiles[postId].repo,
-        files: files,
-        uploadedAt: latestUpload
-      });
+    .header {
+      position: sticky;
+      top: 0;
+      background: rgba(21, 32, 43, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #38444d;
+      padding: 16px 20px;
+      z-index: 10;
     }
-    
-    renderPosts();
-    
-  } catch (e) {
-    feedEl.innerHTML = `<div class="loading">Ошибка: ${e.message}</div>`;
-    console.error(e);
-  }
-}
-
-function changeSortMode(mode) {
-  currentSortMode = mode;
-  
-  // Обновляем активную кнопку
-  document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  renderPosts();
-}
-
-function renderPosts() {
-  const feedEl = document.getElementById('feed');
-  
-  // Сортируем посты
-  const posts = [...allPosts];
-  if (currentSortMode === 'upload') {
-    // Сортировка по дате загрузки (новые сверху)
-    posts.sort((a, b) => {
-      if (!a.uploadedAt && !b.uploadedAt) return b.id - a.id;
-      if (!a.uploadedAt) return 1;
-      if (!b.uploadedAt) return -1;
-      return b.uploadedAt - a.uploadedAt;
-    });
-  } else {
-    // Сортировка по ID поста (новые сверху)
-    posts.sort((a, b) => b.id - a.id);
-  }
-  
-  feedEl.innerHTML = '';
-    
-  for (const post of posts) {
-    const postEl = document.createElement('div');
-    postEl.className = 'post';
-    
-    // Заголовок поста
-    const header = document.createElement('div');
-    header.className = 'post-header';
-    header.innerHTML = `
-      <div class="avatar">�</didv>
-      <div class="post-info">
-        <div class="post-author">Post #${post.id}</div>
-        <div class="post-date">${formatDate(post.date)}</div>
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .sort-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .sort-btn {
+      background: #192734;
+      color: #8899a6;
+      border: 1px solid #38444d;
+      padding: 6px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .sort-btn:hover {
+      background: #22303c;
+    }
+    .sort-btn.active {
+      background: #1da1f2;
+      color: #fff;
+      border-color: #1da1f2;
+    }
+    .post {
+      border-bottom: 1px solid #38444d;
+      padding: 16px 20px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .post:hover { background: rgba(255,255,255,0.03); }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1da1f2, #14171a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .post-info { flex: 1; }
+    .post-author {
+      font-weight: 700;
+      color: #fff;
+    }
+    .post-date {
+      color: #8899a6;
+      font-size: 14px;
+    }
+    .post-text {
+      margin: 12px 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .post-media {
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+    }
+    .post-media img {
+      width: 100%;
+      display: block;
+      cursor: pointer;
+    }
+    .post-media video {
+      width: 100%;
+      display: block;
+      max-height: 500px;
+    }
+    .post-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 12px;
+      color: #8899a6;
+      font-size: 14px;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8899a6;
+    }
+    .decrypt-btn {
+      background: #1da1f2;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .decrypt-btn:hover { background: #1a8cd8; }
+    .key-input {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #192734;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #38444d;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .key-input input {
+      background: #15202b;
+      border: 1px solid #38444d;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      width: 300px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.1/dist/hls.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-title">📱 Feed</div>
+      <div class="sort-buttons">
+        <button class="sort-btn active" onclick="changeSortMode('upload')">По дате загрузки</button>
+        <button class="sort-btn" onclick="changeSortMode('post')">По ID поста</button>
       </div>
-    `;
-    postEl.appendChild(header);
-    
-    // Текст поста
-    if (post.text) {
-      const textEl = document.createElement('div');
-      textEl.className = 'post-text';
-      textEl.textContent = post.text;
-      postEl.appendChild(textEl);
-    }
-    
-    // Медиа
-    const mediaContainer = document.createElement('div');
-    mediaContainer.className = 'post-media';
-    
-    for (const file of post.files) {
-      if (file.encrypted && file.name.endsWith('.enc')) {
-        // Зашифрованное фото
-        const img = document.createElement('img');
-        img.alt = 'Encrypted image';
-        img.style.display = 'none';
-        
-        const btn = document.createElement('button');
-        btn.className = 'decrypt-btn';
-        btn.textContent = '� Покакзать фото';
-        btn.onclick = async () => {
-          btn.disabled = true;
-          btn.textContent = 'Загрузка...';
-          try {
-            const key = document.getElementById('key').value.trim();
-            const url = rawUrl(post.repo, file.name);
-            const r = await fetch(url);
-            if (!r.ok) throw new Error('Failed to fetch');
-            const ab = await r.arrayBuffer();
-            const dec = decryptArrayBuffer(ab, key);
-            const blob = new Blob([dec], {type:'image/jpeg'});
-            img.src = URL.createObjectURL(blob);
-            img.style.display = 'block';
-            btn.style.display = 'none';
-          } catch(err) {
-            alert('Error: ' + err.message);
-            btn.disabled = false;
-            btn.textContent = '🔓 Показать фото';
-          }
-        };
-        
-        mediaContainer.appendChild(btn);
-        mediaContainer.appendChild(img);
-        
-      } else if (file.type === 'hls_raw' && file.name.endsWith('_raw.m3u8')) {
-        // HLS видео
-        const video = document.createElement('video');
-        video.controls = true;
-        video.preload = 'metadata';
-        
-        const url = rawUrl(post.repo, file.name);
-        
-        if (window.Hls && window.Hls.isSupported()) {
-          const hls = new window.Hls();
-          hls.loadSource(url);
-          hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = url;
-        }
-        
-        mediaContainer.appendChild(video);
-      }
-    }
-    
-    if (mediaContainer.children.length > 0) {
-      postEl.appendChild(mediaContainer);
-    }
-    
-    // Статистика
-    const stats = document.createElement('div');
-    stats.className = 'post-stats';
-    stats.innerHTML = `
-      <div class="stat">�️ ${post.v.iews.toLocaleString()}</div>
-      <div class="stat">� ${popst.files.length} файлов</div>
-    `;
-    postEl.appendChild(stats);
-    
-    feedEl.appendChild(postEl);
-  }
-}
+    </div>
+    <div id="feed" class="loading">Загрузка...</div>
+  </div>
 
-function formatDate(dateStr) {
-  if (!dateStr) return 'Неизвестно';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now - date;
-  
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Только что';
-  if (minutes < 60) return `${minutes} мин назад`;
-  if (hours < 24) return `${hours} ч назад`;
-  if (days < 7) return `${days} дн назад`;
-  
-  return date.toLocaleDateString('ru-RU', { 
-    day: 'numeric', 
-    month: 'short', 
-    year: 'numeric' 
-  });
-}
+  <div class="key-input">
+    <input id="key" type="text" placeholder="Encryption key (hex)" value="863740fe80b9d5f36e5b468fc442b0fa">
+  </div>
 
-loadFeed();
-
+  <script src="media.js"></script>
+  <script src="feed.js?v=2"></script>
+</body>
+</html>
