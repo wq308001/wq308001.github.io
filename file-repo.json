@@ -9476,8 +9476,8 @@
     },
     {
       "name": "pppp-7",
-      "totalSize": 925348300,
-      "fileCount": 451,
+      "totalSize": 925771324,
+      "fileCount": 455,
       "files": [
         {
           "name": "9714.ts",
@@ -11282,6 +11282,22 @@
         {
           "name": "1769.ts",
           "post_id": 384
+        },
+        {
+          "name": "381_20250417_150906.jpg.enc",
+          "post_id": 381
+        },
+        {
+          "name": "380_20250417_150906.jpg.enc",
+          "post_id": 380
+        },
+        {
+          "name": "378_20250416_130837.jpg.enc",
+          "post_id": 378
+        },
+        {
+          "name": "377_20250413_161819.jpg.enc",
+          "post_id": 377
         }
       ]
     }
